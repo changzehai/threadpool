@@ -118,10 +118,7 @@ void *echo_server_accpet_client_request(void *arg)
             /* 对端客户端退出，关闭客户端套接字 */
             close(client_sock);
             printf("客户端%d 退出\n", (client_sock - 3));
-            if (arg != NULL)
-            {
-                free(arg);
-            }
+            free(arg);
             break;
         }
         
@@ -130,6 +127,27 @@ void *echo_server_accpet_client_request(void *arg)
     return NULL;
 }
 
+/*****************************************************************************
+ * 函  数:    sigint_handler
+ * 功  能:    ctrl+c信号处理
+ * 输  入:    无
+ * 输  出:    无
+ * 返回值:    无  
+ * 创  建:    2020-04-12 changzehai(DTT)
+ * 更  新:    无
+ ****************************************************************************/
+void sigint_handler(int signum)
+{
+    (void)signum;
+
+    printf("接收到服务器退出信号，服务器开始退从...\n");
+
+    /* 销毁线程池 */
+    thread_pool_destory();
+
+    printf("服务器退出完毕!\n");
+    exit(0);
+}
 
 
 /*****************************************************************************
@@ -152,6 +170,9 @@ int main()
 
     client_addr_len = sizeof(client_addr);
     memset(&client_addr, 0x00, sizeof(client_addr));
+
+    /* 监听ctrl+c信号 */
+    signal(SIGINT, sigint_handler);
 
     /* 启动server socket */
     server_sock = echo_server_startup();

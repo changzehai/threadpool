@@ -247,7 +247,6 @@ static void *thread_worker_routine(void *arg)
         printf ("由线程%lu 处理客户端%d\n\n", (long unsigned int )pthread_self(), (*(int *)task->arg - 3));
         /* 执行任务 */
         task->task_process(task->arg);
-        free(task->arg);
         free(task);
         task = NULL;
 
@@ -386,6 +385,9 @@ int thread_pool_destory()
         return -1;
     }
 
+    /* 设置线程池退出标识 */
+    gs_thread_pool->shutdown = 1;
+
     /* 唤醒所有阻塞的线程，线程池要销毁了 */
     pthread_cond_broadcast (&(gs_thread_pool->task_queue_ready));
 
@@ -395,7 +397,6 @@ int thread_pool_destory()
         pthread_join(gs_thread_pool->threads[i], NULL);
     }
     free(gs_thread_pool->threads);
-
 
     /* 销毁任务队列 */
     thread_pool_task_queue_destory(gs_thread_pool->task_queue);
